@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 60000
     enable_vector_blend: bool = True
     recrawl_sla_minutes: int = 60
+    enable_result_cache: bool = True
+    result_cache_ttl_seconds: int = 15
 
     class Config:
         env_prefix = "SEARCH_"
