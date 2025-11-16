@@ -86,21 +86,4 @@ Idempotency for re-crawl
 - `POST /v1/recrawl` accepts `Idempotency-Key` header.
 - Subsequent requests with the same key return HTTP 409 per API spec (demonstrates conflict handling).
 
-Pushing to GitHub (reminder)
-----------------------------
-When you’re ready, create your first commit and push incrementally:
-1) Stage and commit:
-   - git add .
-   - git commit -m "Initialize project: docs, API spec, FastAPI scaffold, tests"
-2) Create GitHub repo (if not yet made) and set remote:
-   - git remote add origin <your_repo_url>
-3) Push:
-   - git push -u origin main
-
-Make small, logical commits as you iterate. For example:
-- docs: add scaling plan details
-- api: add rate limiting dependency
-- services: plug in real index adapter
-- tests: add load-shape tests
-
-
+Author - Norbert Van
