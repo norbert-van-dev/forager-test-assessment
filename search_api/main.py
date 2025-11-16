@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from search_api.config.settings import get_settings
 from search_api.routes.search import router as search_router
 from search_api.routes.recrawl import router as recrawl_router
+from search_api.middleware.request_id import RequestIdMiddleware
+from search_api.middleware.errors import add_exception_handlers
 
 
 def create_app() -> FastAPI:
@@ -22,6 +24,9 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    app.add_middleware(RequestIdMiddleware)
+    add_exception_handlers(app)
 
     @app.get("/healthz", tags=["health"])
     async def health() -> dict:

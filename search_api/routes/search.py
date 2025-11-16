@@ -1,23 +1,13 @@
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from search_api.config.settings import RequestContext, get_settings
 from search_api.models.schemas import ErrorResponse, SearchResponse
 from search_api.services.search_service import SearchService
+from search_api.dependencies.context import get_context
 
 router = APIRouter(tags=["search"])
-
-
-def get_context(
-    x_api_key: Optional[str] = Header(default=None, alias="X-API-Key"),
-    x_request_id: Optional[str] = Header(default=None, alias="X-Request-Id"),
-) -> RequestContext:
-    settings = get_settings()
-    if settings.api_keys:
-        if not x_api_key or x_api_key not in settings.api_keys:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
-    return RequestContext(request_id=x_request_id, api_key=x_api_key)
 
 
 @router.get(

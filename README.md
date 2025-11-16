@@ -27,6 +27,8 @@ Quick start (local)
    - uvicorn search_api.main:app --reload --host 0.0.0.0 --port 8000
 4) Explore auto docs:
    - Open http://localhost:8000/docs
+5) Run tests:
+   - pytest -q
 
 Repository structure
 --------------------
@@ -38,17 +40,23 @@ Repository structure
   - __init__.py
   - main.py
   - config/settings.py
+  - middleware/
+    - request_id.py
+    - errors.py
+  - dependencies/context.py
   - models/schemas.py
   - routes/search.py
   - routes/recrawl.py
   - services/search_service.py
   - services/recrawl_service.py
+  - services/rate_limit_service.py
   - adapters/index_adapter.py
   - adapters/queue_adapter.py
   - tasks/worker.py
 - tests/
   - test_routes.py
   - test_services.py
+  - test_rate_limit.py
 - requirements.txt
 
 Notes on scalability
@@ -59,6 +67,13 @@ This scaffold emphasizes separation of concerns, async IO, and adapter-based des
 - Tiered caching (client, CDN/edge, gateway, per-shard)
 - Durable, prioritized job queues to enforce the 1-hour SLA on re-crawls
 - Observability hooks (metrics/tracing/logging) through clear seams (omitted here for brevity)
+
+Authentication and rate limiting
+--------------------------------
+- API key support via `X-API-Key` (disabled by default; set `SEARCH_API_KEYS` env with comma-separated keys if needed).
+- Request ID middleware attaches/propagates `X-Request-Id`.
+- In-memory token-bucket rate limiter (replace with Redis/gateway in production). Headers:
+  - `X-RateLimit-Limit`, `X-RateLimit-Remaining`; on 429 includes `Retry-After`.
 
 Pushing to GitHub (reminder)
 ----------------------------
