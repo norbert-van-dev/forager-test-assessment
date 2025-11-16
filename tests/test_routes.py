@@ -41,3 +41,17 @@ def test_recrawl_lifecycle():
     assert status_body["status"] in {"queued", "running", "succeeded", "failed", "expired"}
 
 
+def test_recrawl_idempotency_conflict():
+    client = TestClient(app)
+    payload = {
+        "urls": ["https://example.com/a"],
+        "priority": "normal",
+        "reason": "test",
+    }
+    idem = {"Idempotency-Key": "abc-123"}
+    first = client.post("/v1/recrawl", json=payload, headers=idem)
+    assert first.status_code == 202
+    second = client.post("/v1/recrawl", json=payload, headers=idem)
+    assert second.status_code == 409
+
+

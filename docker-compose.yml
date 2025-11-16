@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  api:
+    build: .
+    image: scalable-search-api:local
+    environment:
+      - SEARCH_API_NAME=Scalable Search API
+      - SEARCH_RATE_LIMIT_PER_MINUTE=60000
+      - SEARCH_ENABLE_RESULT_CACHE=true
+      - SEARCH_RESULT_CACHE_TTL_SECONDS=15
+    ports:
+      - "8000:8000"
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+
+

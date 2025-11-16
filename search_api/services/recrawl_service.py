@@ -13,6 +13,8 @@ class RecrawlService:
         self.settings = get_settings()
         # In-memory job state, replace with durable store in production
         self._jobs: Dict[str, RecrawlJob] = {}
+        # Idempotency registry: (tenant_id or "", key) -> job_group_id
+        self._idem: Dict[Tuple[str, str], str] = {}
 
     async def enqueue_recrawl(
         self,
@@ -22,8 +24,15 @@ class RecrawlService:
         callback_url: Optional[str],
         tenant_id: Optional[str] = None,
         not_before: Optional[datetime] = None,
+        idempotency_key: Optional[str] = None,
     ) -> RecrawlGroupResponse:
         now = datetime.now(timezone.utc)
+        tenant = tenant_id or ""
+        if idempotency_key:
+            key = (tenant, idempotency_key)
+            if key in self._idem:
+                # Duplicate submission by design returns conflict by spec
+                raise ValueError("duplicate_idempotency_key")
         job_group_id = str(uuid.uuid4())
         sla_deadline = now + timedelta(minutes=self.settings.recrawl_sla_minutes)
 
@@ -46,6 +55,8 @@ class RecrawlService:
             )
             self._jobs[job_id] = job
             jobs.append(job)
+        if idempotency_key:
+            self._idem[(tenant, idempotency_key)] = job_group_id
         return RecrawlGroupResponse(job_group_id=job_group_id, jobs=jobs)
 
     async def get_status(self, job_id: str) -> Optional[RecrawlStatusResponse]:

@@ -29,6 +29,12 @@ Quick start (local)
    - Open http://localhost:8000/docs
 5) Run tests:
    - pytest -q
+6) Docker (optional):
+   - Build: docker build -t scalable-search-api:local .
+   - Run: docker run --rm -p 8000:8000 scalable-search-api:local
+7) Docker Compose:
+   - docker compose up --build -d
+   - Open http://localhost:8000/docs
 
 Repository structure
 --------------------
@@ -74,6 +80,11 @@ Authentication and rate limiting
 - Request ID middleware attaches/propagates `X-Request-Id`.
 - In-memory token-bucket rate limiter (replace with Redis/gateway in production). Headers:
   - `X-RateLimit-Limit`, `X-RateLimit-Remaining`; on 429 includes `Retry-After`.
+
+Idempotency for re-crawl
+------------------------
+- `POST /v1/recrawl` accepts `Idempotency-Key` header.
+- Subsequent requests with the same key return HTTP 409 per API spec (demonstrates conflict handling).
 
 Pushing to GitHub (reminder)
 ----------------------------

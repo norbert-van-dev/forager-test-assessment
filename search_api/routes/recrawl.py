@@ -28,6 +28,7 @@ router = APIRouter(tags=["recrawl"])
 async def request_recrawl(
     payload: RecrawlRequest,
     ctx: RequestContext = Depends(get_context),
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> RecrawlGroupResponse:
     if len(payload.urls) > 100:
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Too many URLs")
@@ -35,14 +36,20 @@ async def request_recrawl(
     now = datetime.now(timezone.utc)
     # Example: delay low-priority jobs slightly if needed
     not_before = None
-    response = await service.enqueue_recrawl(
-        urls=[str(u) for u in payload.urls],
-        priority=payload.priority,
-        reason=payload.reason,
-        callback_url=str(payload.callback_url) if payload.callback_url else None,
-        tenant_id=ctx.tenant_id,
-        not_before=not_before,
-    )
+    try:
+        response = await service.enqueue_recrawl(
+            urls=[str(u) for u in payload.urls],
+            priority=payload.priority,
+            reason=payload.reason,
+            callback_url=str(payload.callback_url) if payload.callback_url else None,
+            tenant_id=ctx.tenant_id,
+            not_before=not_before,
+            idempotency_key=idempotency_key,
+        )
+    except ValueError as e:
+        if str(e) == "duplicate_idempotency_key":
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Duplicate Idempotency-Key") from e
+        raise
     response.request_id = ctx.request_id
     return response
 
